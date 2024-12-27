@@ -1,0 +1,7 @@
+{
+  // Enable autocompletion inside cva. Check out: https://cva.style/docs/getting-started/installation
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ]
+}
