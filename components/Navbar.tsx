@@ -1,4 +1,6 @@
+import { UserButton } from "@clerk/nextjs";
 import LinksDropdown from "./LinksDropdown";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   return (
@@ -6,10 +8,10 @@ export default function Navbar() {
       <div>
         <LinksDropdown />
       </div>
-      {/* <div className='flex items-center gap-x-4'>
+      <div className='flex items-center gap-x-4'>
         <ThemeToggle />
-        <UserButton afterSignOutUrl='/' />
-      </div> */}
+        <UserButton />
+      </div>
     </nav>
   );
 }
