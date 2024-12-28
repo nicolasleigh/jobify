@@ -6,8 +6,34 @@ import { Form } from "./ui/form";
 import { Button } from "./ui/button";
 import CustomFormSelect, { CustomFormField } from "./FormComponents";
 import { createAndEditJobSchema, CreateAndEditJobType, JobMode, JobStatus } from "@/utils/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { createJobAction } from "@/utils/actions";
 
 export default function CreateJobForm() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const router = useRouter();
+  const { mutate, isPending } = useMutation({
+    mutationFn: (values: CreateAndEditJobType) => createJobAction(values),
+    onSuccess: (data) => {
+      if (!data) {
+        toast({
+          description: "there was an error",
+        });
+        return;
+      }
+      toast({ description: "job created" });
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({ queryKey: ["charts"] });
+
+      router.push("/jobs");
+      // form.reset();
+    },
+  });
+
   const form = useForm<CreateAndEditJobType>({
     resolver: zodResolver(createAndEditJobSchema),
     defaultValues: {
@@ -20,7 +46,7 @@ export default function CreateJobForm() {
   });
 
   function onSubmit(values: CreateAndEditJobType) {
-    console.log(values);
+    mutate(values);
   }
 
   return (
@@ -38,8 +64,8 @@ export default function CreateJobForm() {
             items={Object.values(JobStatus)}
           />
           <CustomFormSelect name='mode' control={form.control} labelText='job mode' items={Object.values(JobMode)} />
-          <Button type='submit' className='self-end capitalize'>
-            create job
+          <Button type='submit' className='self-end capitalize' disabled={isPending}>
+            {isPending ? "loading..." : "create job"}
           </Button>
         </div>
       </form>
