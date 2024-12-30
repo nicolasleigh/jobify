@@ -24,7 +24,7 @@ export default function CreateJobForm() {
         });
         return;
       }
-      toast({ description: "job created" });
+      toast({ description: "Job Created" });
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
       queryClient.invalidateQueries({ queryKey: ["charts"] });

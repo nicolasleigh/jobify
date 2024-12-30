@@ -13,6 +13,13 @@ export type JobType = {
   mode: string;
 };
 
+export type GetAllJobsActionTypes = {
+  search?: string;
+  jobStatus?: string;
+  page?: number;
+  limit?: number;
+};
+
 export enum JobStatus {
   Pending = "pending",
   Interview = "interview",
