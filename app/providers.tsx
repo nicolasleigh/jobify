@@ -26,7 +26,7 @@ export default function Providers({ children }: PropsWithChildren) {
     <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
       <Toaster />
       <QueryClientProvider client={queryClient}>
-        <ReactQueryDevtools initialIsOpen={true} />
+        <ReactQueryDevtools initialIsOpen={false} />
         {children}
       </QueryClientProvider>
     </ThemeProvider>
