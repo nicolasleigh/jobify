@@ -5,6 +5,7 @@ import { createAndEditJobSchema, CreateAndEditJobType, GetAllJobsActionTypes, Jo
 import { redirect } from "next/navigation";
 import prisma from "./db";
 import { Prisma } from "@prisma/client";
+import dayjs from "dayjs";
 
 async function authenticateAndRedirect() {
   const { userId } = await auth();
@@ -34,6 +35,7 @@ export async function createJobAction(values: CreateAndEditJobType) {
 
 export async function getAllJobsAction({ search, jobStatus, page = 1, limit = 10 }: GetAllJobsActionTypes) {
   const userId = await authenticateAndRedirect();
+  // await new Promise((r) => setTimeout(r, 4000));
 
   try {
     let whereClause: Prisma.JobWhereInput = {
@@ -62,15 +64,22 @@ export async function getAllJobsAction({ search, jobStatus, page = 1, limit = 10
         status: jobStatus,
       };
     }
+    const skip = (page - 1) * limit;
 
     const jobs = await prisma.job.findMany({
       where: whereClause,
+      skip,
+      take: limit,
       orderBy: {
         createdAt: "desc",
       },
     });
+    const count = await prisma.job.count({
+      where: whereClause,
+    });
+    const totalPages = Math.ceil(count / limit);
 
-    return { jobs, count: 0, page: 1, totalPages: 0 };
+    return { jobs, count, page, totalPages };
   } catch (error) {
     console.error(error);
     return { jobs: [], count: 0, page: 1, totalPages: 0 };
@@ -129,5 +138,71 @@ export async function updateJobAction(id: string, values: CreateAndEditJobType) 
     return job;
   } catch (error) {
     return null;
+  }
+}
+
+export async function getStatsAction() {
+  const userId = await authenticateAndRedirect();
+  // await new Promise((resolve) => setTimeout(resolve, 5000));
+  try {
+    const stats = await prisma.job.groupBy({
+      by: ["status"],
+      _count: {
+        status: true,
+      },
+      where: {
+        clerkId: userId, // replace userId with the actual clerkId
+      },
+    });
+    const statsObject = stats.reduce((acc, curr) => {
+      acc[curr.status] = curr._count.status;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const defaultStats = {
+      pending: 0,
+      declined: 0,
+      interview: 0,
+      ...statsObject,
+    };
+    return defaultStats;
+  } catch (error) {
+    redirect("/jobs");
+  }
+}
+
+export async function getChartsDataAction() {
+  const userId = await authenticateAndRedirect();
+  const sixMonthsAgo = dayjs().subtract(6, "month").toDate();
+  try {
+    const jobs = await prisma.job.findMany({
+      where: {
+        clerkId: userId,
+        createdAt: {
+          gte: sixMonthsAgo,
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    let applicationsPerMonth = jobs.reduce((acc, job) => {
+      const date = dayjs(job.createdAt).format("MMM YY");
+
+      const existingEntry = acc.find((entry) => entry.date === date);
+
+      if (existingEntry) {
+        existingEntry.count += 1;
+      } else {
+        acc.push({ date, count: 1 });
+      }
+
+      return acc;
+    }, [] as Array<{ date: string; count: number }>);
+
+    return applicationsPerMonth;
+  } catch (error) {
+    redirect("/jobs");
   }
 }

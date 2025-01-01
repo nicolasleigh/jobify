@@ -17,7 +17,7 @@ export default function JobCard({ job }: { job: JobType }) {
         <CardDescription>{job.company}</CardDescription>
       </CardHeader>
       <Separator />
-      <CardContent>
+      <CardContent className='mt-4 grid grid-cols-2 gap-4'>
         <JobInfo icon={<Briefcase />} text={job.mode} />
         <JobInfo icon={<MapPin />} text={job.location} />
         <JobInfo icon={<CalendarDays />} text={date} />
